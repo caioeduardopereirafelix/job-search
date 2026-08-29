@@ -21,8 +21,10 @@ public class Job {
 
     private String companyJob;
 
+    @Column(name ="description_job", columnDefinition = "TEXT")
     private String descriptionJob;
 
+    @Column(length = 2048)
     private String sourceUrlJob;
 
     private String sourceNameJob;
