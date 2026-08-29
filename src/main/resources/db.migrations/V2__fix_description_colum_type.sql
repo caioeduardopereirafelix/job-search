@@ -1,0 +1,1 @@
+ALTER TABLE job ALTER COLUMN description_job TYPE TEXT;
