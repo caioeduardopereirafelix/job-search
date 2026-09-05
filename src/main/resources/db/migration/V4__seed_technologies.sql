@@ -1,0 +1,18 @@
+INSERT INTO technology (name, category) VALUES
+    ('Java', 'Linguagem'),
+    ('Python', 'Linguagem'),
+    ('JavaScript', 'Linguagem'),
+    ('TypeScript', 'Linguagem'),
+    ('C#', 'Linguagem'),
+    ('Spring Boot', 'Framework'),
+    ('React', 'Framework'),
+    ('Angular', 'Framework'),
+    ('Node.js', 'Framework'),
+    ('.NET', 'Framework'),
+    ('PostgreSQL', 'Banco de dados'),
+    ('MySQL', 'Banco de dados'),
+    ('MongoDB', 'Banco de dados'),
+    ('Git', 'Ferramenta'),
+    ('Docker', 'Ferramenta'),
+    ('AWS', 'Ferramenta'),
+    ('SQL', 'Ferramenta');
