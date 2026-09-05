@@ -1,19 +1,17 @@
-
-
 HELP.md
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+# Java
 *.class
 
+# Logs
 *.log
-
 *.ctxt
 
-.mtj.tmp/
-
+# Maven / Java archives
 *.jar
 *.war
 *.nar
@@ -22,30 +20,42 @@ target/
 *.tar.gz
 *.rar
 
+# JVM crash logs
 hs_err_pid*
 replay_pid*
 
+# Annotation processing
 .apt_generated
+
+# Eclipse
 .classpath
 .factorypath
 .project
 .settings
 .springBeans
 
-.idea
+# IntelliJ IDEA
+.idea/
 *.iws
 *.iml
 *.ipr
 
+# NetBeans
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
+
+# Gradle
 build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+# Environment variables
 .env
 .env.*
 !.env.example
+
+# VS Code
+.vscode/
