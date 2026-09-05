@@ -1,0 +1,3 @@
+ALTER TABLE technology ALTER COLUMN id SET DEFAULT gen_random_uuid();
+ALTER TABLE technology ALTER COLUMN name SET NOT NULL;
+ALTER TABLE technology ALTER COLUMN category SET NOT NULL;

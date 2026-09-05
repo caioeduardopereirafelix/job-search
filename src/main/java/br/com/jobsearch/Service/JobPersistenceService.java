@@ -1,7 +1,7 @@
 package br.com.jobsearch.Service;
 
 import br.com.jobsearch.Domain.Job;
-import br.com.jobsearch.Respository.JobRepository;
+import br.com.jobsearch.Repository.JobRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
