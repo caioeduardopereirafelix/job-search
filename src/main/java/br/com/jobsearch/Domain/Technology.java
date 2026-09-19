@@ -1,15 +1,17 @@
 package br.com.jobsearch.Domain;
 
 import jakarta.persistence.*;
+import lombok.Getter;
 
 import java.util.UUID;
 
 @Entity
 @Table(name = "technology")
+@Getter
 public class Technology {
 
-    @GeneratedValue(strategy = GenerationType.UUID)
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     private String name;

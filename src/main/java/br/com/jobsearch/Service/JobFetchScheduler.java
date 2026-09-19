@@ -2,7 +2,7 @@ package br.com.jobsearch.Service;
 
 import br.com.jobsearch.Domain.Job;
 import br.com.jobsearch.JobClient.JobSourceClient;
-import br.com.jobsearch.Respository.UserTechnologyRepository;
+import br.com.jobsearch.Repository.UserTechnologyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;

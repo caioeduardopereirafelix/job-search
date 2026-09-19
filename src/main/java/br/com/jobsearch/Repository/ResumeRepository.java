@@ -1,4 +1,4 @@
-package br.com.jobsearch.Respository;
+package br.com.jobsearch.Repository;
 
 import br.com.jobsearch.Domain.Resume;
 import org.springframework.data.jpa.repository.JpaRepository;

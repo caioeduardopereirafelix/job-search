@@ -2,6 +2,8 @@ package br.com.jobsearch.Domain;
 
 import br.com.jobsearch.Enumerations.Roles;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -9,6 +11,8 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "users")
+@Getter
+@Setter
 public class User {
 
     @GeneratedValue(strategy = GenerationType.UUID)
