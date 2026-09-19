@@ -33,3 +33,9 @@ jwt:
 
 resume:
   storage-path: ${RESUME_STORAGE_PATH:./uploads/resumes}
+
+server:
+  error:
+    include-message: always
+
+

@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ES2020",
+    "moduleResolution": "Node",
+    "strict": true,
+    "outDir": "src/main/resources/static/js",
+    "rootDir": "src/main/resources/static/ts",
+    "sourceMap": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
+  },
+  "include": ["src/main/resources/static/ts/**/*.ts"]
+}

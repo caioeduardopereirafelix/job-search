@@ -31,6 +31,7 @@ public class UserService {
     private final TechnologyRepository technologyRepository;
     private final UserTechnologyRepository userTechnologyRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JobMatchService jobMatchService;
 
     @Transactional
     public UserResponse registerUser(UserRegistrationRequest request) {
@@ -48,6 +49,10 @@ public class UserService {
 
         List<UserTechnology> links = linkTechnologies(user, request.technologies());
 
+        if (!links.isEmpty()) {
+            jobMatchService.matchExistingJobsForUser(user.getId());
+        }
+
         return toResponse(user, links);
     }
 
@@ -64,7 +69,11 @@ public class UserService {
                 .filter(name -> !already.contains(name.trim().toUpperCase()))
                 .toList();
 
-        linkTechnologies(user, newOnes);
+        List<UserTechnology> links = linkTechnologies(user, newOnes);
+
+        if (!links.isEmpty()) {
+            jobMatchService.matchExistingJobsForUser(userId);
+        }
 
         return toResponse(user, userTechnologyRepository.findByUserId(userId));
     }

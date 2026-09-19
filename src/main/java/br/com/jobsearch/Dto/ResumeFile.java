@@ -1,4 +1,4 @@
 package br.com.jobsearch.Dto;
 
-public record ResumeFile(byte[] content, String originalFileName) {
+public record   ResumeFile(byte[] content, String originalFileName) {
 }
