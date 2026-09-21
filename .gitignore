@@ -59,3 +59,9 @@ build/
 
 # VS Code
 .vscode/
+
+# Dependencias do front
+node_modules/
+
+# Uploads locais (curriculos de usuarios)
+uploads/
