@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -94,8 +95,18 @@ public class JobMatchService {
                 .toLowerCase(Locale.ROOT);
 
         return technologyNames.stream()
-                .filter(name -> haystack.contains(name.toLowerCase(Locale.ROOT)))
+                .filter(name -> mentions(haystack, name))
                 .toList();
+    }
+
+    /**
+     * Procura a tecnologia como palavra inteira: "Git" nao casa com "digital",
+     * "Java" nao casa com "JavaScript" e "C" nao casa com "C#" ou "C++".
+     */
+    static boolean mentions(String haystack, String technologyName) {
+        String regex = "(?<![\\p{L}\\p{N}])" + Pattern.quote(technologyName.toLowerCase(Locale.ROOT))
+                + "(?![\\p{L}\\p{N}+#])";
+        return Pattern.compile(regex).matcher(haystack).find();
     }
 
     private String nullToEmpty(String value) {

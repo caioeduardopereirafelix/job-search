@@ -142,7 +142,7 @@ async function refreshUserTechnologies(): Promise<void> {
             const removeButton = document.createElement("button");
             removeButton.type = "button";
             removeButton.className = "tag-remove";
-            removeButton.textContent = "Ã—";
+            removeButton.textContent = "×";
             removeButton.title = `Remover ${name}`;
             removeButton.addEventListener("click", () => handleRemoveTechnology(name));
 
@@ -174,7 +174,7 @@ async function refreshResume(): Promise<void> {
     const resume = await api.getResume(session.userId, session.token);
 
     if (!resume) {
-        resumeStatus.textContent = "Nenhum currÃ­culo enviado ainda.";
+        resumeStatus.textContent = "Nenhum currículo enviado ainda.";
         downloadResumeButton.classList.add("hidden");
         resumePreview.classList.add("hidden");
         return;
@@ -183,7 +183,7 @@ async function refreshResume(): Promise<void> {
     const uploadedAt = new Date(resume.uploadAt).toLocaleString("pt-BR");
     resumeStatus.textContent = `Enviado: ${resume.originalFileName} (${uploadedAt})`;
     downloadResumeButton.classList.remove("hidden");
-    resumeText.textContent = resume.extractText || "(nenhum texto extraÃ­do)";
+    resumeText.textContent = resume.extractText || "(nenhum texto extraído)";
     resumePreview.classList.remove("hidden");
 }
 
@@ -192,7 +192,7 @@ function renderMatches(matches: JobMatchResponse[]): void {
 
     if (matches.length === 0) {
         matchesList.innerHTML =
-            '<span class="empty-state">Nenhuma vaga compatÃ­vel encontrada ainda.</span>';
+            '<span class="empty-state">Nenhuma vaga compatível encontrada ainda.</span>';
         return;
     }
 
@@ -327,7 +327,7 @@ resumeForm.addEventListener("submit", async (event) => {
     try {
         await api.uploadResume(session.userId, session.token, file);
         await refreshResume();
-        showSuccess("CurrÃ­culo enviado com sucesso.");
+        showSuccess("Currículo enviado com sucesso.");
         resumeForm.reset();
     } catch (error) {
         showError(describeError(error));
@@ -378,5 +378,5 @@ async function init(): Promise<void> {
 
 init().catch((error) => {
     console.error(error);
-    showError("Falha ao carregar a aplicaÃ§Ã£o.");
+    showError("Falha ao carregar a aplicação.");
 });
