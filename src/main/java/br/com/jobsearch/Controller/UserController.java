@@ -51,6 +51,13 @@ public class UserController {
         return userService.addTechnologies(id, request.technologies());
     }
 
+    @DeleteMapping("/{id}/technologies/{technologyName}")
+    public UserResponse removeTechnology(@PathVariable UUID id, @PathVariable String technologyName,
+                                          Authentication authentication) {
+        requireOwner(id, authentication);
+        return userService.removeTechnology(id, technologyName);
+    }
+
     @GetMapping("/{id}/matches")
     public List<JobMatchResponse> getMatches(@PathVariable UUID id, Authentication authentication) {
         requireOwner(id, authentication);

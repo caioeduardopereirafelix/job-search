@@ -22,6 +22,9 @@ spring:
     multipart:
       max-file-size: 5MB
       max-request-size: 5MB
+  server:
+    error:
+      include-message: always
 
 adzuna:
   app-id: ${ADZUNA_APP_ID}
@@ -33,3 +36,4 @@ jwt:
 
 resume:
   storage-path: ${RESUME_STORAGE_PATH:./uploads/resumes}
+

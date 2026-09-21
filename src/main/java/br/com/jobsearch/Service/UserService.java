@@ -31,6 +31,7 @@ public class UserService {
     private final TechnologyRepository technologyRepository;
     private final UserTechnologyRepository userTechnologyRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JobMatchService jobMatchService;
 
     @Transactional
     public UserResponse registerUser(UserRegistrationRequest request) {
@@ -46,9 +47,13 @@ public class UserService {
         user.setCreatedAt(LocalDateTime.now());
         userRepository.save(user);
 
-        List<UserTechnology> links = linkTechnologies(user, request.technologies());
+        boolean linkedAny = linkTechnologies(user, request.technologies());
 
-        return toResponse(user, links);
+        if (linkedAny) {
+            jobMatchService.matchExistingJobsForUser(user.getId());
+        }
+
+        return toResponse(user, userTechnologyRepository.findByUserId(user.getId()));
     }
 
     @Transactional
@@ -56,15 +61,25 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario nao encontrado"));
 
-        Set<String> already = userTechnologyRepository.findByUserId(userId).stream()
-                .map(ut -> ut.getTechnology().getName().toUpperCase())
-                .collect(Collectors.toSet());
+        boolean linkedAny = linkTechnologies(user, technologyNames);
 
-        List<String> newOnes = technologyNames.stream()
-                .filter(name -> !already.contains(name.trim().toUpperCase()))
-                .toList();
+        if (linkedAny) {
+            jobMatchService.matchExistingJobsForUser(userId);
+        }
 
-        linkTechnologies(user, newOnes);
+        return toResponse(user, userTechnologyRepository.findByUserId(userId));
+    }
+
+    @Transactional
+    public UserResponse removeTechnology(UUID userId, String technologyName) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario nao encontrado"));
+
+        UserTechnology link = userTechnologyRepository
+                .findByUserIdAndTechnologyNameIgnoreCase(userId, technologyName)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tecnologia nao associada a este usuario"));
+
+        userTechnologyRepository.delete(link);
 
         return toResponse(user, userTechnologyRepository.findByUserId(userId));
     }
@@ -76,9 +91,17 @@ public class UserService {
         return toResponse(user, userTechnologyRepository.findByUserId(userId));
     }
 
-    private List<UserTechnology> linkTechnologies(User user, List<String> technologyNames) {
+    /**
+     * Vincula as tecnologias informadas ao usuario. Cada vinculo e inserido
+     * com ON CONFLICT DO NOTHING (via linkIfAbsent), entao chamar duas vezes
+     * com a mesma tecnologia - inclusive em paralelo - nunca falha nem
+     * duplica: so a que realmente inseriu retorna 1 linha afetada.
+     *
+     * @return true se pelo menos uma tecnologia nova foi de fato vinculada
+     */
+    private boolean linkTechnologies(User user, List<String> technologyNames) {
         if (technologyNames == null || technologyNames.isEmpty()) {
-            return List.of();
+            return false;
         }
 
         List<String> namesUpper = technologyNames.stream()
@@ -89,7 +112,7 @@ public class UserService {
                 .toList();
 
         if (namesUpper.isEmpty()) {
-            return List.of();
+            return false;
         }
 
         List<Technology> found = technologyRepository.findByNameUpperIn(namesUpper);
@@ -104,14 +127,14 @@ public class UserService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tecnologias desconhecidas: " + unknown);
         }
 
-        List<UserTechnology> links = found.stream().map(technology -> {
-            UserTechnology userTechnology = new UserTechnology();
-            userTechnology.setUser(user);
-            userTechnology.setTechnology(technology);
-            return userTechnology;
-        }).toList();
-
-        return userTechnologyRepository.saveAll(links);
+        boolean linkedAny = false;
+        for (Technology technology : found) {
+            int inserted = userTechnologyRepository.linkIfAbsent(user.getId(), technology.getId());
+            if (inserted > 0) {
+                linkedAny = true;
+            }
+        }
+        return linkedAny;
     }
 
     private UserResponse toResponse(User user, List<UserTechnology> links) {

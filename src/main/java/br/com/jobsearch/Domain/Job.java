@@ -35,4 +35,16 @@ public class Job {
 
     private LocalDateTime fetchedAt;
 
+    /** Titulo + empresa + local normalizados; identifica a mesma vaga mesmo com URLs diferentes. */
+    @Column(length = 800, unique = true)
+    private String dedupKey;
+
+    public static String buildDedupKey(String title, String company, String location) {
+        return normalize(title) + "|" + normalize(company) + "|" + normalize(location);
+    }
+
+    private static String normalize(String value) {
+        return value == null ? "" : value.trim().replaceAll("\\s+", " ").toLowerCase(java.util.Locale.ROOT);
+    }
+
 }

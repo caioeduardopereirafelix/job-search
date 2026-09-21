@@ -7,4 +7,6 @@ import java.util.UUID;
 
 public interface JobRepository extends JpaRepository<Job, UUID> {
     boolean existsBySourceUrlJob(String soruceUrl);
+
+    boolean existsByDedupKey(String dedupKey);
 }

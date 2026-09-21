@@ -16,6 +16,7 @@ public class JobFetchScheduler {
     private final JobSourceClient jobSourceClient;
     private final JobPersistenceService jobPersistenceService;
     private final UserTechnologyRepository userTechnologyRepository;
+    private final JobMatchService jobMatchService;
 
     // fixedDelay curto por enquanto, só para testar mais rápido.
     // Trocar para @Scheduled(cron = "0 0 6 * * *") quando for para produção (1x por dia).
@@ -30,8 +31,9 @@ public class JobFetchScheduler {
 
         for (String technology : technologies) {
             List<Job> jobs = jobSourceClient.fetchLatestJobs(technology, "");
-            int saved = jobPersistenceService.saveNewJob(jobs);
-            System.out.println("[" + technology + "] Vagas novas salvas: " + saved + " de " + jobs.size() + " recebidas");
+            List<Job> saved = jobPersistenceService.saveNewJob(jobs);
+            jobMatchService.matchNewJobs(saved);
+            System.out.println("[" + technology + "] Vagas novas salvas: " + saved.size() + " de " + jobs.size() + " recebidas");
         }
     }
 }

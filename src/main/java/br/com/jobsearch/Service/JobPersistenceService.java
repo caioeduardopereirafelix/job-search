@@ -6,6 +6,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -15,14 +16,16 @@ public class JobPersistenceService {
     private final JobRepository jobRepository;
 
     @Transactional
-    public int saveNewJob(List<Job> jobs){
-        int savedCount = 0;
+    public List<Job> saveNewJob(List<Job> jobs){
+        List<Job> saved = new ArrayList<>();
         for (Job job : jobs){
-            if (!jobRepository.existsBySourceUrlJob(job.getSourceUrlJob())){
+            job.setDedupKey(Job.buildDedupKey(job.getTitleJob(), job.getCompanyJob(), job.getLocation()));
+            if (!jobRepository.existsBySourceUrlJob(job.getSourceUrlJob())
+                    && !jobRepository.existsByDedupKey(job.getDedupKey())){
                 jobRepository.save(job);
-                savedCount++;
+                saved.add(job);
             }
         }
-        return savedCount;
+        return saved;
     }
 }

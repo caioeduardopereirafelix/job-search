@@ -33,12 +33,23 @@ public class AdzunaJobSourceClient implements JobSourceClient{
                 .toList();
     }
 
+    /**
+     * O redirect_url do Adzuna traz um token "se" novo a cada busca; sem
+     * removê-lo, a mesma vaga nunca é reconhecida como já existente.
+     */
+    static String normalizeUrl(String url) {
+        if (url == null) {
+            return null;
+        }
+        return url.replaceAll("([?&])se=[^&]*&?", "$1").replaceAll("[?&]+$", "");
+    }
+
     private Job toJob(AdzunaResult r){
         Job job = new Job();
         job.setTitleJob(r.title());
         job.setCompanyJob(r.company().displayName());
         job.setDescriptionJob(r.description());
-        job.setSourceUrlJob(r.redirectUrl());
+        job.setSourceUrlJob(normalizeUrl(r.redirectUrl()));
         job.setSourceNameJob("Adzuna");
         job.setLocation(r.location().location());
         job.setPostedAt(r.created());
