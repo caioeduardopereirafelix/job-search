@@ -148,14 +148,16 @@ public class UserService {
     }
 
     /**
-     * Cruza o perfil com as vagas que ja estao no banco e, depois do commit,
+     * Recalcula os matches do perfil contra as vagas do banco e, depois do commit,
      * pede a busca de vagas novas das tecnologias adicionadas (em background).
      */
     private void onTechnologiesLinked(UUID userId, List<String> linkedTechnologies) {
         if (linkedTechnologies.isEmpty()) {
             return;
         }
-        jobMatchService.matchExistingJobsForUser(userId);
+        // Recalcula em vez de so completar: os matches que ja existiam guardam o score e
+        // as tecnologias do perfil antigo, e ficariam desatualizados com o perfil maior.
+        jobMatchService.rematchUser(userId);
         eventPublisher.publishEvent(new UserTechnologiesLinkedEvent(userId, linkedTechnologies));
     }
 
