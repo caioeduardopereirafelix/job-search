@@ -65,6 +65,20 @@ public class UserService {
         return toResponse(user, userTechnologyRepository.findByUserId(userId));
     }
 
+    /**
+     * Mesmo efeito de addTechnologies, mas devolve so os nomes que de fato entraram
+     * no perfil agora (ignora os que o usuario ja tinha).
+     */
+    @Transactional
+    public List<String> addTechnologiesFromResume(UUID userId, List<String> technologyNames) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario nao encontrado"));
+
+        List<String> linked = linkTechnologies(user, technologyNames);
+        onTechnologiesLinked(userId, linked);
+        return linked;
+    }
+
     @Transactional
     public UserResponse removeTechnology(UUID userId, String technologyName) {
         User user = userRepository.findById(userId)

@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -30,6 +31,8 @@ public class ResumeService {
 
     private final UserRepository userRepository;
     private final ResumeRepository resumeRepository;
+    private final ResumeTechnologyExtractor technologyExtractor;
+    private final UserService userService;
 
     @Value("${resume.storage-path}")
     private String storagePath;
@@ -69,7 +72,11 @@ public class ResumeService {
         resume.setUploadAt(LocalDateTime.now());
         resumeRepository.save(resume);
 
-        return toResponse(resume);
+        // So acrescenta ao perfil; nunca remove o que o usuario ja tinha.
+        List<String> detected = technologyExtractor.extract(extractedText);
+        List<String> added = userService.addTechnologiesFromResume(userId, detected);
+
+        return toResponse(resume, detected, added);
     }
 
     @Transactional(readOnly = true)
@@ -113,6 +120,11 @@ public class ResumeService {
     }
 
     private ResumeResponse toResponse(Resume resume) {
-        return new ResumeResponse(resume.getId(), resume.getOriginalFileName(), resume.getExtractText(), resume.getUploadAt());
+        return toResponse(resume, List.of(), List.of());
+    }
+
+    private ResumeResponse toResponse(Resume resume, List<String> detected, List<String> added) {
+        return new ResumeResponse(resume.getId(), resume.getOriginalFileName(), resume.getExtractText(),
+                resume.getUploadAt(), detected, added);
     }
 }

@@ -117,9 +117,14 @@ public class JobMatchService {
      * "Java" nao casa com "JavaScript" e "C" nao casa com "C#" ou "C++".
      */
     static boolean mentions(String haystack, String technologyName) {
-        String regex = "(?<![\\p{L}\\p{N}])" + Pattern.quote(technologyName.toLowerCase(Locale.ROOT))
+        return mentions(haystack, technologyName, true);
+    }
+
+    static boolean mentions(String haystack, String technologyName, boolean ignoreCase) {
+        String regex = "(?<![\\p{L}\\p{N}])" + Pattern.quote(technologyName)
                 + "(?![\\p{L}\\p{N}+#])";
-        return Pattern.compile(regex).matcher(haystack).find();
+        int flags = ignoreCase ? Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE : 0;
+        return Pattern.compile(regex, flags).matcher(haystack).find();
     }
 
     private String nullToEmpty(String value) {

@@ -34,6 +34,9 @@ export interface ResumeResponse {
     originalFileName: string;
     extractText: string;
     uploadAt: string;
+    /** Só vem preenchido no upload. */
+    detectedTechnologies: string[];
+    addedTechnologies: string[];
 }
 
 export interface Session {

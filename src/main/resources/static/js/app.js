@@ -268,6 +268,18 @@ addTechForm.addEventListener("submit", async (event) => {
             submitButton.disabled = false;
     }
 });
+function describeResumeUpload(resume) {
+    if (!resume.extractText.trim()) {
+        return "Currículo enviado, mas não foi possível ler o texto do PDF (talvez seja uma imagem escaneada).";
+    }
+    if (resume.addedTechnologies.length > 0) {
+        return `Currículo enviado. Tecnologias adicionadas ao perfil: ${resume.addedTechnologies.join(", ")}.`;
+    }
+    if (resume.detectedTechnologies.length > 0) {
+        return "Currículo enviado. As tecnologias encontradas já estavam no seu perfil.";
+    }
+    return "Currículo enviado. Nenhuma tecnologia do catálogo foi encontrada no texto.";
+}
 resumeForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     clearAlert();
@@ -279,9 +291,9 @@ resumeForm.addEventListener("submit", async (event) => {
         return;
     }
     try {
-        await api.uploadResume(session.userId, session.token, file);
-        await refreshResume();
-        showSuccess("Currículo enviado com sucesso.");
+        const uploaded = await api.uploadResume(session.userId, session.token, file);
+        await Promise.all([refreshResume(), refreshUserTechnologies(), refreshMatches()]);
+        showSuccess(describeResumeUpload(uploaded));
         resumeForm.reset();
     }
     catch (error) {

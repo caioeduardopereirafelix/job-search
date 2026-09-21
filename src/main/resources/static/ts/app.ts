@@ -1,7 +1,7 @@
 import * as api from "./api.js";
 import { ApiError } from "./api.js";
 import { saveSession, loadSession, clearSession } from "./state.js";
-import type { Session, Technology, JobMatchResponse } from "./types.js";
+import type { Session, Technology, JobMatchResponse, ResumeResponse } from "./types.js";
 
 const el = <T extends HTMLElement>(id: string): T => {
     const found = document.getElementById(id);
@@ -313,6 +313,19 @@ addTechForm.addEventListener("submit", async (event) => {
     }
 });
 
+function describeResumeUpload(resume: ResumeResponse): string {
+    if (!resume.extractText.trim()) {
+        return "Currículo enviado, mas não foi possível ler o texto do PDF (talvez seja uma imagem escaneada).";
+    }
+    if (resume.addedTechnologies.length > 0) {
+        return `Currículo enviado. Tecnologias adicionadas ao perfil: ${resume.addedTechnologies.join(", ")}.`;
+    }
+    if (resume.detectedTechnologies.length > 0) {
+        return "Currículo enviado. As tecnologias encontradas já estavam no seu perfil.";
+    }
+    return "Currículo enviado. Nenhuma tecnologia do catálogo foi encontrada no texto.";
+}
+
 resumeForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     clearAlert();
@@ -325,9 +338,9 @@ resumeForm.addEventListener("submit", async (event) => {
     }
 
     try {
-        await api.uploadResume(session.userId, session.token, file);
-        await refreshResume();
-        showSuccess("Currículo enviado com sucesso.");
+        const uploaded = await api.uploadResume(session.userId, session.token, file);
+        await Promise.all([refreshResume(), refreshUserTechnologies(), refreshMatches()]);
+        showSuccess(describeResumeUpload(uploaded));
         resumeForm.reset();
     } catch (error) {
         showError(describeError(error));
