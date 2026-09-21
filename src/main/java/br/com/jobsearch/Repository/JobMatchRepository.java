@@ -15,6 +15,10 @@ public interface JobMatchRepository extends JpaRepository<JobMatch, UUID> {
 
     List<JobMatch> findByUserIdOrderByScoreDesc(UUID userId);
 
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("DELETE FROM JobMatch jm WHERE jm.user.id = :userId")
+    void deleteByUserId(@Param("userId") UUID userId);
+
     /**
      * Insere o match so se o par usuario+vaga ainda nao existir. ON CONFLICT
      * DO NOTHING e atomico no Postgres, evitando duplicatas quando o scheduler

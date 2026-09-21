@@ -1,22 +1,20 @@
 package br.com.jobsearch.Service;
 
-import br.com.jobsearch.Domain.Job;
-import br.com.jobsearch.JobClient.JobSourceClient;
 import br.com.jobsearch.Repository.UserTechnologyRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JobFetchScheduler {
 
-    private final JobSourceClient jobSourceClient;
-    private final JobPersistenceService jobPersistenceService;
+    private final JobFetchService jobFetchService;
     private final UserTechnologyRepository userTechnologyRepository;
-    private final JobMatchService jobMatchService;
 
     // fixedDelay curto por enquanto, só para testar mais rápido.
     // Trocar para @Scheduled(cron = "0 0 6 * * *") quando for para produção (1x por dia).
@@ -29,13 +27,13 @@ public class JobFetchScheduler {
             technologies = List.of("java");
         }
 
-        for (String technology : technologies) {
-            List<Job> jobs = jobSourceClient.fetchLatestJobs(technology, "");
-            List<Job> saved = jobPersistenceService.saveNewJob(jobs);
-            jobMatchService.matchNewJobs(saved);
-            System.out.println("[" + technology + "] Vagas novas salvas: " + saved.size() + " de " + jobs.size() + " recebidas");
+        for (String technology : jobFetchService.byOldestFetch(technologies)) {
+            try {
+                jobFetchService.fetchAndPersist(technology);
+            } catch (RuntimeException e) {
+                // Uma tecnologia que falha (ex.: limite da API) nao pode impedir as demais.
+                log.warn("Falha ao buscar vagas de '{}': {}", technology, e.getMessage());
+            }
         }
     }
 }
-
-

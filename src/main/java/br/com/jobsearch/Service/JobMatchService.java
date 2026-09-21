@@ -16,8 +16,10 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -64,6 +66,17 @@ public class JobMatchService {
         for (Job job : jobRepository.findAll()) {
             createMatchIfApplicable(user, job, technologyNames);
         }
+    }
+
+    /**
+     * Descarta os matches do usuario e recalcula contra as vagas do banco.
+     * Usado quando uma tecnologia e removida: os matches que dependiam so dela
+     * somem e o score dos demais volta a refletir o perfil atual.
+     */
+    @Transactional
+    public void rematchUser(UUID userId) {
+        jobMatchRepository.deleteByUserId(userId);
+        matchExistingJobsForUser(userId);
     }
 
     private List<String> technologyNamesFor(UUID userId) {
@@ -119,7 +132,14 @@ public class JobMatchService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario nao encontrado");
         }
 
+        Set<String> currentTechnologies = technologyNamesFor(userId).stream()
+                .map(name -> name.toLowerCase(Locale.ROOT))
+                .collect(Collectors.toSet());
+
+        // Rede de seguranca: so mostra o match se ele ainda cita alguma tecnologia do perfil atual.
         return jobMatchRepository.findByUserIdOrderByScoreDesc(userId).stream()
+                .filter(jm -> jm.getMatchedTechnologies() != null && jm.getMatchedTechnologies().stream()
+                        .anyMatch(name -> currentTechnologies.contains(name.toLowerCase(Locale.ROOT))))
                 .map(jm -> new JobMatchResponse(
                         jm.getJob().getId(),
                         jm.getJob().getTitleJob(),

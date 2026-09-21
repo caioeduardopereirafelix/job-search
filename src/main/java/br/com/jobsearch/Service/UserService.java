@@ -10,6 +10,7 @@ import br.com.jobsearch.Repository.TechnologyRepository;
 import br.com.jobsearch.Repository.UserRepository;
 import br.com.jobsearch.Repository.UserTechnologyRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -32,6 +34,7 @@ public class UserService {
     private final UserTechnologyRepository userTechnologyRepository;
     private final PasswordEncoder passwordEncoder;
     private final JobMatchService jobMatchService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public UserResponse registerUser(UserRegistrationRequest request) {
@@ -47,11 +50,7 @@ public class UserService {
         user.setCreatedAt(LocalDateTime.now());
         userRepository.save(user);
 
-        boolean linkedAny = linkTechnologies(user, request.technologies());
-
-        if (linkedAny) {
-            jobMatchService.matchExistingJobsForUser(user.getId());
-        }
+        onTechnologiesLinked(user.getId(), linkTechnologies(user, request.technologies()));
 
         return toResponse(user, userTechnologyRepository.findByUserId(user.getId()));
     }
@@ -61,11 +60,7 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario nao encontrado"));
 
-        boolean linkedAny = linkTechnologies(user, technologyNames);
-
-        if (linkedAny) {
-            jobMatchService.matchExistingJobsForUser(userId);
-        }
+        onTechnologiesLinked(userId, linkTechnologies(user, technologyNames));
 
         return toResponse(user, userTechnologyRepository.findByUserId(userId));
     }
@@ -80,6 +75,7 @@ public class UserService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tecnologia nao associada a este usuario"));
 
         userTechnologyRepository.delete(link);
+        jobMatchService.rematchUser(userId);
 
         return toResponse(user, userTechnologyRepository.findByUserId(userId));
     }
@@ -97,11 +93,11 @@ public class UserService {
      * com a mesma tecnologia - inclusive em paralelo - nunca falha nem
      * duplica: so a que realmente inseriu retorna 1 linha afetada.
      *
-     * @return true se pelo menos uma tecnologia nova foi de fato vinculada
+     * @return os nomes das tecnologias que foram de fato vinculadas agora (vazio se nenhuma era nova)
      */
-    private boolean linkTechnologies(User user, List<String> technologyNames) {
+    private List<String> linkTechnologies(User user, List<String> technologyNames) {
         if (technologyNames == null || technologyNames.isEmpty()) {
-            return false;
+            return List.of();
         }
 
         List<String> namesUpper = technologyNames.stream()
@@ -112,7 +108,7 @@ public class UserService {
                 .toList();
 
         if (namesUpper.isEmpty()) {
-            return false;
+            return List.of();
         }
 
         List<Technology> found = technologyRepository.findByNameUpperIn(namesUpper);
@@ -127,14 +123,26 @@ public class UserService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tecnologias desconhecidas: " + unknown);
         }
 
-        boolean linkedAny = false;
+        List<String> linked = new ArrayList<>();
         for (Technology technology : found) {
             int inserted = userTechnologyRepository.linkIfAbsent(user.getId(), technology.getId());
             if (inserted > 0) {
-                linkedAny = true;
+                linked.add(technology.getName());
             }
         }
-        return linkedAny;
+        return linked;
+    }
+
+    /**
+     * Cruza o perfil com as vagas que ja estao no banco e, depois do commit,
+     * pede a busca de vagas novas das tecnologias adicionadas (em background).
+     */
+    private void onTechnologiesLinked(UUID userId, List<String> linkedTechnologies) {
+        if (linkedTechnologies.isEmpty()) {
+            return;
+        }
+        jobMatchService.matchExistingJobsForUser(userId);
+        eventPublisher.publishEvent(new UserTechnologiesLinkedEvent(userId, linkedTechnologies));
     }
 
     private UserResponse toResponse(User user, List<UserTechnology> links) {
