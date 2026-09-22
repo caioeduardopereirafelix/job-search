@@ -47,11 +47,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return errorResponse(HttpStatus.BAD_REQUEST, "Parametros invalidos", request.getRequestURI(), details);
     }
 
-    @ExceptionHandler(MaxUploadSizeExceededException.class)
-    public ResponseEntity<ApiErrorResponse> handleMaxUploadSize(MaxUploadSizeExceededException ex, HttpServletRequest request) {
-        return errorResponse(HttpStatus.PAYLOAD_TOO_LARGE, "Arquivo excede o tamanho maximo permitido", request.getRequestURI(), null);
-    }
-
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleUnexpected(Exception ex, HttpServletRequest request) {
         log.error("Erro nao tratado em {}", request.getRequestURI(), ex);
@@ -59,7 +54,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     // --- Excecoes que o ResponseEntityExceptionHandler ja intercepta (validacao de @Valid @RequestBody,
-    // JSON malformado, parametro obrigatorio ausente, metodo HTTP nao suportado etc.) ---
+    // JSON malformado, parametro obrigatorio ausente, metodo HTTP nao suportado, upload acima do limite etc.).
+    // Precisam ser @Override de um hook protected, e nao um @ExceptionHandler novo: a classe-mae ja mapeia
+    // esses tipos exatos para o seu handleException(Exception, WebRequest) interno, e declarar de novo
+    // (como eu tinha feito com handleMaxUploadSize) da "Ambiguous @ExceptionHandler method" no startup. ---
+
+    @Override
+    protected ResponseEntity<Object> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException ex,
+            HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        ApiErrorResponse body = ApiErrorResponse.of(413, "Payload Too Large",
+                "Arquivo excede o tamanho maximo permitido", path(request), null);
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(body);
+    }
 
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,

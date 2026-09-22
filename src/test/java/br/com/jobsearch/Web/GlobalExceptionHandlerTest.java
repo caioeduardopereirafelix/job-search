@@ -7,9 +7,11 @@ import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.constraints.Min;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -63,10 +65,14 @@ class GlobalExceptionHandlerTest {
     @Test
     void maxUploadSizeBecomes413() {
         MaxUploadSizeExceededException ex = new MaxUploadSizeExceededException(5_000_000L);
+        ServletWebRequest request = new ServletWebRequest(requestTo("/api/users/x/resume"));
 
-        ResponseEntity<ApiErrorResponse> response = handler.handleMaxUploadSize(ex, requestTo("/api/users/x/resume"));
+        ResponseEntity<Object> response = handler.handleMaxUploadSizeExceededException(
+                ex, new HttpHeaders(), HttpStatus.PAYLOAD_TOO_LARGE, request);
 
         assertEquals(HttpStatus.PAYLOAD_TOO_LARGE, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(((ApiErrorResponse) response.getBody()).message().contains("tamanho"));
     }
 
     @Test
