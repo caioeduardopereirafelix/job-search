@@ -65,3 +65,6 @@ node_modules/
 
 # Uploads locais (curriculos de usuarios)
 uploads/
+
+# Compose de deploy na VPS - fica so na maquina de deploy, nao no repositorio
+docker-compose.prod.yaml

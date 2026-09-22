@@ -1,0 +1,13 @@
+.git
+.github
+.claude
+target
+node_modules
+uploads
+*.md
+.env
+.env.*
+!.env.example
+.idea
+.vscode
+*.iml
