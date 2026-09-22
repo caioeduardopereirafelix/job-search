@@ -7,7 +7,12 @@ SET dedup_key = lower(regexp_replace(trim(coalesce(title_job, '')), '\s+', ' ', 
              || lower(regexp_replace(trim(coalesce(company_job, '')), '\s+', ' ', 'g')) || '|'
              || lower(regexp_replace(trim(coalesce(location, '')), '\s+', ' ', 'g'));
 
-CREATE TEMP TABLE job_map AS
+-- ON COMMIT DROP: sem isto, a tabela temp pode sobreviver a transacao (ela e
+-- por sessao, nao por transacao) e, com pool de conexoes, uma tentativa
+-- anterior desta migration pode deixar "job_map" para tras na mesma conexao
+-- fisica reaproveitada, quebrando a proxima tentativa com "already exists".
+DROP TABLE IF EXISTS job_map;
+CREATE TEMP TABLE job_map ON COMMIT DROP AS
 SELECT id AS old_id, keeper_id
 FROM (
     SELECT id, first_value(id) OVER (PARTITION BY dedup_key ORDER BY posted_at DESC NULLS LAST, id::text) AS keeper_id
