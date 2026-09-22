@@ -3,6 +3,7 @@ package br.com.jobsearch.Service;
 import br.com.jobsearch.Domain.Job;
 import br.com.jobsearch.Domain.User;
 import br.com.jobsearch.Dto.JobMatchResponse;
+import br.com.jobsearch.Dto.PagedResponse;
 import br.com.jobsearch.Repository.JobMatchRepository;
 import br.com.jobsearch.Repository.JobRepository;
 import br.com.jobsearch.Repository.UserRepository;
@@ -131,8 +132,20 @@ public class JobMatchService {
         return value == null ? "" : value;
     }
 
+    /** Sem paginacao, para quem so precisa da lista inteira (ex.: testes). */
     @Transactional(readOnly = true)
     public List<JobMatchResponse> getMatchesForUser(UUID userId) {
+        return getMatchesForUser(userId, 0, Integer.MAX_VALUE).content();
+    }
+
+    /**
+     * O filtro por tecnologia atual do perfil (ver rede de seguranca abaixo) e feito em memoria,
+     * entao a lista inteira do usuario e carregada antes de paginar. Para o volume de vagas de
+     * hoje isso e barato; se crescer muito, mover o filtro para uma consulta nativa com o
+     * operador de overlap de array do Postgres (matched_technologies && :currentTechnologies).
+     */
+    @Transactional(readOnly = true)
+    public PagedResponse<JobMatchResponse> getMatchesForUser(UUID userId, int page, int size) {
         if (!userRepository.existsById(userId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario nao encontrado");
         }
@@ -142,7 +155,7 @@ public class JobMatchService {
                 .collect(Collectors.toSet());
 
         // Rede de seguranca: so mostra o match se ele ainda cita alguma tecnologia do perfil atual.
-        return jobMatchRepository.findByUserIdOrderByScoreDesc(userId).stream()
+        List<JobMatchResponse> all = jobMatchRepository.findByUserIdOrderByScoreDesc(userId).stream()
                 .filter(jm -> jm.getMatchedTechnologies() != null && jm.getMatchedTechnologies().stream()
                         .anyMatch(name -> currentTechnologies.contains(name.toLowerCase(Locale.ROOT))))
                 .map(jm -> new JobMatchResponse(
@@ -154,5 +167,9 @@ public class JobMatchService {
                         jm.getMatchedTechnologies(),
                         jm.getCreatedAt()))
                 .toList();
+
+        long from = Math.min((long) page * size, all.size());
+        long to = Math.min(from + size, all.size());
+        return PagedResponse.of(all.subList((int) from, (int) to), page, size, all.size());
     }
 }

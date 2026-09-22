@@ -2,6 +2,7 @@ package br.com.jobsearch.Controller;
 
 import br.com.jobsearch.Dto.AddTechnologiesRequest;
 import br.com.jobsearch.Dto.JobMatchResponse;
+import br.com.jobsearch.Dto.PagedResponse;
 import br.com.jobsearch.Dto.ResumeFile;
 import br.com.jobsearch.Dto.ResumeResponse;
 import br.com.jobsearch.Dto.UserRegistrationRequest;
@@ -10,6 +11,8 @@ import br.com.jobsearch.Service.JobMatchService;
 import br.com.jobsearch.Service.ResumeService;
 import br.com.jobsearch.Service.UserService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -20,7 +23,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -59,9 +61,13 @@ public class UserController {
     }
 
     @GetMapping("/{id}/matches")
-    public List<JobMatchResponse> getMatches(@PathVariable UUID id, Authentication authentication) {
+    public PagedResponse<JobMatchResponse> getMatches(
+            @PathVariable UUID id,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size,
+            Authentication authentication) {
         requireOwner(id, authentication);
-        return jobMatchService.getMatchesForUser(id);
+        return jobMatchService.getMatchesForUser(id, page, size);
     }
 
     @PostMapping(value = "/{id}/resume", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

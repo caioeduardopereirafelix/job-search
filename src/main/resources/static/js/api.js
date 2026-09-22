@@ -59,10 +59,8 @@ export function removeTechnology(id, token, technologyName) {
         headers: authHeaders(token),
     });
 }
-export function getMatches(id, token) {
-    return request(`/api/users/${id}/matches`, {
-        headers: authHeaders(token),
-    });
+export function getMatches(id, token, page = 0, size = 20) {
+    return request(`/api/users/${id}/matches?page=${page}&size=${size}`, { headers: authHeaders(token) });
 }
 export async function getResume(id, token) {
     try {

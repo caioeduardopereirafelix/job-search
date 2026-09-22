@@ -22,9 +22,12 @@ spring:
     multipart:
       max-file-size: 5MB
       max-request-size: 5MB
-  server:
-    error:
-      include-message: always
+
+# Estava indentado dentro de "spring:" (spring.server.error.*, que nao existe) e por isso
+# nunca surtia efeito: server.error.* e uma propriedade de nivel raiz, nao de spring.*.
+server:
+  error:
+    include-message: always
 
 adzuna:
   app-id: ${ADZUNA_APP_ID}

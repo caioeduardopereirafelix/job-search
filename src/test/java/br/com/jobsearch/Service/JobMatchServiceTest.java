@@ -6,6 +6,7 @@ import br.com.jobsearch.Domain.Technology;
 import br.com.jobsearch.Domain.User;
 import br.com.jobsearch.Domain.UserTechnology;
 import br.com.jobsearch.Dto.JobMatchResponse;
+import br.com.jobsearch.Dto.PagedResponse;
 import br.com.jobsearch.Repository.JobMatchRepository;
 import br.com.jobsearch.Repository.JobRepository;
 import br.com.jobsearch.Repository.UserRepository;
@@ -67,6 +68,39 @@ class JobMatchServiceTest {
 
         assertEquals(1, result.size());
         assertEquals("Vaga Java", result.get(0).titleJob());
+    }
+
+    @Test
+    void getMatchesPaginatesAfterFilteringByCurrentProfile() {
+        when(userRepository.existsById(userId)).thenReturn(true);
+        givenUserTechnologies("Java");
+
+        // 3 batem com o perfil atual, 1 nao bate (so AWS) e deve ficar de fora antes de paginar.
+        JobMatch m1 = matchOf("Vaga 1", List.of("Java"));
+        JobMatch m2 = matchOf("Vaga 2", List.of("Java"));
+        JobMatch onlyAws = matchOf("Vaga AWS", List.of("AWS"));
+        JobMatch m3 = matchOf("Vaga 3", List.of("Java"));
+        when(jobMatchRepository.findByUserIdOrderByScoreDesc(userId)).thenReturn(List.of(m1, m2, onlyAws, m3));
+
+        PagedResponse<JobMatchResponse> firstPage = service.getMatchesForUser(userId, 0, 2);
+        assertEquals(List.of("Vaga 1", "Vaga 2"), firstPage.content().stream().map(JobMatchResponse::titleJob).toList());
+        assertEquals(3, firstPage.totalElements());
+        assertEquals(2, firstPage.totalPages());
+
+        PagedResponse<JobMatchResponse> secondPage = service.getMatchesForUser(userId, 1, 2);
+        assertEquals(List.of("Vaga 3"), secondPage.content().stream().map(JobMatchResponse::titleJob).toList());
+    }
+
+    @Test
+    void getMatchesReturnsEmptyContentPastTheLastPage() {
+        when(userRepository.existsById(userId)).thenReturn(true);
+        givenUserTechnologies("Java");
+        when(jobMatchRepository.findByUserIdOrderByScoreDesc(userId)).thenReturn(List.of(matchOf("Vaga 1", List.of("Java"))));
+
+        PagedResponse<JobMatchResponse> beyondLastPage = service.getMatchesForUser(userId, 5, 10);
+
+        assertEquals(List.of(), beyondLastPage.content());
+        assertEquals(1, beyondLastPage.totalElements());
     }
 
     @Test

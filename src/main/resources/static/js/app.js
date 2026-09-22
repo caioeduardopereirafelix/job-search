@@ -30,8 +30,13 @@ const resumeText = el("resume-text");
 const downloadResumeButton = el("download-resume-button");
 const matchesList = el("matches-list");
 const refreshMatchesButton = el("refresh-matches-button");
+const matchesCountLabel = el("matches-count");
+const loadMoreMatchesButton = el("load-more-matches-button");
+const MATCHES_PAGE_SIZE = 20;
 let session = null;
 let allTechnologies = [];
+let matchesNextPage = 0;
+let matchesTotalElements = 0;
 function showError(message) {
     alertBox.textContent = message;
     alertBox.className = "alert alert-error";
@@ -152,9 +157,11 @@ async function refreshResume() {
     resumeText.textContent = resume.extractText || "(nenhum texto extraído)";
     resumePreview.classList.remove("hidden");
 }
-function renderMatches(matches) {
-    matchesList.innerHTML = "";
-    if (matches.length === 0) {
+function renderMatches(matches, append) {
+    if (!append) {
+        matchesList.innerHTML = "";
+    }
+    if (!append && matches.length === 0) {
         matchesList.innerHTML =
             '<span class="empty-state">Nenhuma vaga compatível encontrada ainda.</span>';
         return;
@@ -186,11 +193,28 @@ function escapeHtml(value) {
     div.textContent = value;
     return div.innerHTML;
 }
+function updateMatchesFooter() {
+    matchesCountLabel.textContent =
+        matchesTotalElements === 0 ? "" : `Mostrando ${Math.min(matchesNextPage * MATCHES_PAGE_SIZE, matchesTotalElements)} de ${matchesTotalElements}`;
+    loadMoreMatchesButton.classList.toggle("hidden", matchesNextPage * MATCHES_PAGE_SIZE >= matchesTotalElements);
+}
 async function refreshMatches() {
     if (!session)
         return;
-    const matches = await api.getMatches(session.userId, session.token);
-    renderMatches(matches);
+    const result = await api.getMatches(session.userId, session.token, 0, MATCHES_PAGE_SIZE);
+    matchesNextPage = 1;
+    matchesTotalElements = result.totalElements;
+    renderMatches(result.content, false);
+    updateMatchesFooter();
+}
+async function loadMoreMatches() {
+    if (!session)
+        return;
+    const result = await api.getMatches(session.userId, session.token, matchesNextPage, MATCHES_PAGE_SIZE);
+    matchesNextPage += 1;
+    matchesTotalElements = result.totalElements;
+    renderMatches(result.content, true);
+    updateMatchesFooter();
 }
 function doLogout() {
     session = null;
@@ -312,6 +336,15 @@ downloadResumeButton.addEventListener("click", async () => {
         link.download = filename;
         link.click();
         URL.revokeObjectURL(url);
+    }
+    catch (error) {
+        showError(describeError(error));
+    }
+});
+loadMoreMatchesButton.addEventListener("click", async () => {
+    clearAlert();
+    try {
+        await loadMoreMatches();
     }
     catch (error) {
         showError(describeError(error));

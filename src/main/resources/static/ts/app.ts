@@ -37,9 +37,15 @@ const downloadResumeButton = el<HTMLButtonElement>("download-resume-button");
 
 const matchesList = el<HTMLElement>("matches-list");
 const refreshMatchesButton = el<HTMLButtonElement>("refresh-matches-button");
+const matchesCountLabel = el<HTMLElement>("matches-count");
+const loadMoreMatchesButton = el<HTMLButtonElement>("load-more-matches-button");
+
+const MATCHES_PAGE_SIZE = 20;
 
 let session: Session | null = null;
 let allTechnologies: Technology[] = [];
+let matchesNextPage = 0;
+let matchesTotalElements = 0;
 
 function showError(message: string): void {
     alertBox.textContent = message;
@@ -187,10 +193,12 @@ async function refreshResume(): Promise<void> {
     resumePreview.classList.remove("hidden");
 }
 
-function renderMatches(matches: JobMatchResponse[]): void {
-    matchesList.innerHTML = "";
+function renderMatches(matches: JobMatchResponse[], append: boolean): void {
+    if (!append) {
+        matchesList.innerHTML = "";
+    }
 
-    if (matches.length === 0) {
+    if (!append && matches.length === 0) {
         matchesList.innerHTML =
             '<span class="empty-state">Nenhuma vaga compatível encontrada ainda.</span>';
         return;
@@ -227,10 +235,28 @@ function escapeHtml(value: string): string {
     return div.innerHTML;
 }
 
+function updateMatchesFooter(): void {
+    matchesCountLabel.textContent =
+        matchesTotalElements === 0 ? "" : `Mostrando ${Math.min(matchesNextPage * MATCHES_PAGE_SIZE, matchesTotalElements)} de ${matchesTotalElements}`;
+    loadMoreMatchesButton.classList.toggle("hidden", matchesNextPage * MATCHES_PAGE_SIZE >= matchesTotalElements);
+}
+
 async function refreshMatches(): Promise<void> {
     if (!session) return;
-    const matches = await api.getMatches(session.userId, session.token);
-    renderMatches(matches);
+    const result = await api.getMatches(session.userId, session.token, 0, MATCHES_PAGE_SIZE);
+    matchesNextPage = 1;
+    matchesTotalElements = result.totalElements;
+    renderMatches(result.content, false);
+    updateMatchesFooter();
+}
+
+async function loadMoreMatches(): Promise<void> {
+    if (!session) return;
+    const result = await api.getMatches(session.userId, session.token, matchesNextPage, MATCHES_PAGE_SIZE);
+    matchesNextPage += 1;
+    matchesTotalElements = result.totalElements;
+    renderMatches(result.content, true);
+    updateMatchesFooter();
 }
 
 function doLogout(): void {
@@ -359,6 +385,15 @@ downloadResumeButton.addEventListener("click", async () => {
         link.download = filename;
         link.click();
         URL.revokeObjectURL(url);
+    } catch (error) {
+        showError(describeError(error));
+    }
+});
+
+loadMoreMatchesButton.addEventListener("click", async () => {
+    clearAlert();
+    try {
+        await loadMoreMatches();
     } catch (error) {
         showError(describeError(error));
     }

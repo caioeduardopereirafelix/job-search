@@ -3,6 +3,7 @@ import type {
     UserResponse,
     LoginResponse,
     JobMatchResponse,
+    PagedResponse,
     ResumeResponse,
 } from "./types.js";
 
@@ -104,11 +105,14 @@ export function removeTechnology(
 
 export function getMatches(
     id: string,
-    token: string
-): Promise<JobMatchResponse[]> {
-    return request<JobMatchResponse[]>(`/api/users/${id}/matches`, {
-        headers: authHeaders(token),
-    });
+    token: string,
+    page: number = 0,
+    size: number = 20
+): Promise<PagedResponse<JobMatchResponse>> {
+    return request<PagedResponse<JobMatchResponse>>(
+        `/api/users/${id}/matches?page=${page}&size=${size}`,
+        { headers: authHeaders(token) }
+    );
 }
 
 export async function getResume(
