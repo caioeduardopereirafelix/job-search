@@ -21,38 +21,52 @@
         <div id="alert-box" class="alert hidden"></div>
 
         <!-- Tela de autenticacao -->
-        <section id="auth-screen" class="card auth-card">
-            <div class="tabs">
-                <button id="tab-login" class="tab tab-active">Entrar</button>
-                <button id="tab-register" class="tab">Cadastrar</button>
+        <section id="auth-screen" class="auth-screen">
+            <div class="auth-hero">
+                <div class="auth-hero-shapes" aria-hidden="true"></div>
+                <div class="auth-hero-badge" aria-hidden="true">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="10.5" cy="10.5" r="6.5" stroke="#0f172a" stroke-width="2"/>
+                        <line x1="15.4" y1="15.4" x2="20.5" y2="20.5" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
             </div>
 
-            <form id="login-form" class="form">
-                <label for="login-email">E-mail</label>
-                <input id="login-email" type="email" required autocomplete="email" />
+            <div class="auth-panel">
+                <h1 id="auth-heading" class="auth-heading">Entrar</h1>
 
-                <label for="login-password">Senha</label>
-                <input id="login-password" type="password" required autocomplete="current-password" />
+                <form id="login-form" class="auth-form">
+                    <label for="login-email">E-mail</label>
+                    <input id="login-email" type="email" placeholder="seuemail@exemplo.com" required autocomplete="email" />
 
-                <button type="submit" class="btn btn-primary">Entrar</button>
-            </form>
+                    <label for="login-password">Senha</label>
+                    <input id="login-password" type="password" placeholder="••••••••" required autocomplete="current-password" />
 
-            <form id="register-form" class="form hidden">
-                <label for="register-name">Nome</label>
-                <input id="register-name" type="text" required />
+                    <button type="submit" class="btn-pill">Entrar</button>
+                </form>
 
-                <label for="register-email">E-mail</label>
-                <input id="register-email" type="email" required autocomplete="email" />
+                <form id="register-form" class="auth-form hidden">
+                    <label for="register-name">Nome</label>
+                    <input id="register-name" type="text" placeholder="Seu nome" required />
 
-                <label for="register-password">Senha</label>
-                <input id="register-password" type="password" required minlength="8" autocomplete="new-password" />
-                <span class="hint">Pelo menos 8 caracteres</span>
+                    <label for="register-email">E-mail</label>
+                    <input id="register-email" type="email" placeholder="seuemail@exemplo.com" required autocomplete="email" />
 
-                <label>Tecnologias</label>
-                <div id="register-technologies" class="tech-grid"></div>
+                    <label for="register-password">Senha</label>
+                    <input id="register-password" type="password" placeholder="••••••••" required minlength="8" autocomplete="new-password" />
+                    <span class="hint">Pelo menos 8 caracteres</span>
 
-                <button type="submit" class="btn btn-primary">Cadastrar</button>
-            </form>
+                    <label>Tecnologias</label>
+                    <div id="register-technologies" class="tech-grid"></div>
+
+                    <button type="submit" class="btn-pill">Cadastrar</button>
+                </form>
+
+                <p class="auth-switch">
+                    <button type="button" id="tab-register" class="auth-switch-link">Não tem uma conta? <strong>Cadastre-se</strong></button>
+                    <button type="button" id="tab-login" class="auth-switch-link tab-active">Já tem uma conta? <strong>Entrar</strong></button>
+                </p>
+            </div>
         </section>
 
         <!-- Painel principal -->
