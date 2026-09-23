@@ -65,10 +65,7 @@ public class UserService {
         return toResponse(user, userTechnologyRepository.findByUserId(userId));
     }
 
-    /**
-     * Mesmo efeito de addTechnologies, mas devolve so os nomes que de fato entraram
-     * no perfil agora (ignora os que o usuario ja tinha).
-     */
+
     @Transactional
     public List<String> addTechnologiesFromResume(UUID userId, List<String> technologyNames) {
         User user = userRepository.findById(userId)
@@ -101,14 +98,7 @@ public class UserService {
         return toResponse(user, userTechnologyRepository.findByUserId(userId));
     }
 
-    /**
-     * Vincula as tecnologias informadas ao usuario. Cada vinculo e inserido
-     * com ON CONFLICT DO NOTHING (via linkIfAbsent), entao chamar duas vezes
-     * com a mesma tecnologia - inclusive em paralelo - nunca falha nem
-     * duplica: so a que realmente inseriu retorna 1 linha afetada.
-     *
-     * @return os nomes das tecnologias que foram de fato vinculadas agora (vazio se nenhuma era nova)
-     */
+
     private List<String> linkTechnologies(User user, List<String> technologyNames) {
         if (technologyNames == null || technologyNames.isEmpty()) {
             return List.of();
@@ -147,10 +137,7 @@ public class UserService {
         return linked;
     }
 
-    /**
-     * Recalcula os matches do perfil contra as vagas do banco e, depois do commit,
-     * pede a busca de vagas novas das tecnologias adicionadas (em background).
-     */
+
     private void onTechnologiesLinked(UUID userId, List<String> linkedTechnologies) {
         if (linkedTechnologies.isEmpty()) {
             return;

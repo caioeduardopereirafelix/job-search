@@ -7,11 +7,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-/**
- * Busca vagas novas das tecnologias que o usuario acabou de adicionar, sem
- * esperar o proximo ciclo do scheduler. Roda depois do commit (para o vinculo
- * ja estar visivel) e em outra thread (a chamada a Adzuna e lenta).
- */
+
 @Slf4j
 @Component
 @RequiredArgsConstructor

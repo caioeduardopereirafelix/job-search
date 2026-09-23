@@ -19,11 +19,7 @@ public interface JobMatchRepository extends JpaRepository<JobMatch, UUID> {
     @Query("DELETE FROM JobMatch jm WHERE jm.user.id = :userId")
     void deleteByUserId(@Param("userId") UUID userId);
 
-    /**
-     * Insere o match so se o par usuario+vaga ainda nao existir. ON CONFLICT
-     * DO NOTHING e atomico no Postgres, evitando duplicatas quando o scheduler
-     * e o cadastro/edicao de tecnologias rodam ao mesmo tempo.
-     */
+
     @Modifying
     @Query(value = "INSERT INTO job_match (id, user_id, job_id, score, matched_technologies, created_at) "
             + "VALUES (gen_random_uuid(), :userId, :jobId, :score, :matched, :createdAt) "
