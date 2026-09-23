@@ -23,11 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
-/**
- * Centraliza o formato das respostas de erro da API. Sem isto, uma excecao
- * nao prevista cai no /error padrao do Spring, cujo corpo varia conforme o
- * tipo de falha e pode nem incluir a mensagem.
- */
+
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
@@ -52,12 +48,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         log.error("Erro nao tratado em {}", request.getRequestURI(), ex);
         return errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Erro interno inesperado", request.getRequestURI(), null);
     }
-
-    // --- Excecoes que o ResponseEntityExceptionHandler ja intercepta (validacao de @Valid @RequestBody,
-    // JSON malformado, parametro obrigatorio ausente, metodo HTTP nao suportado, upload acima do limite etc.).
-    // Precisam ser @Override de um hook protected, e nao um @ExceptionHandler novo: a classe-mae ja mapeia
-    // esses tipos exatos para o seu handleException(Exception, WebRequest) interno, e declarar de novo
-    // (como eu tinha feito com handleMaxUploadSize) da "Ambiguous @ExceptionHandler method" no startup. ---
 
     @Override
     protected ResponseEntity<Object> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException ex,
