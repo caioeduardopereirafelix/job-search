@@ -17,6 +17,7 @@ const userInfo = el<HTMLElement>("user-info");
 const userNameLabel = el<HTMLElement>("user-name-label");
 const alertBox = el<HTMLElement>("alert-box");
 
+const authHeading = el<HTMLElement>("auth-heading");
 const tabLogin = el<HTMLButtonElement>("tab-login");
 const tabRegister = el<HTMLButtonElement>("tab-register");
 const loginForm = el<HTMLFormElement>("login-form");
@@ -71,6 +72,7 @@ function describeError(error: unknown): string {
 
 function switchTab(tab: "login" | "register"): void {
     const isLogin = tab === "login";
+    authHeading.textContent = isLogin ? "Entrar" : "Cadastrar";
     tabLogin.classList.toggle("tab-active", isLogin);
     tabRegister.classList.toggle("tab-active", !isLogin);
     loginForm.classList.toggle("hidden", !isLogin);

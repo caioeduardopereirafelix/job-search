@@ -13,6 +13,7 @@ const dashboard = el("dashboard");
 const userInfo = el("user-info");
 const userNameLabel = el("user-name-label");
 const alertBox = el("alert-box");
+const authHeading = el("auth-heading");
 const tabLogin = el("tab-login");
 const tabRegister = el("tab-register");
 const loginForm = el("login-form");
@@ -57,6 +58,7 @@ function describeError(error) {
 }
 function switchTab(tab) {
     const isLogin = tab === "login";
+    authHeading.textContent = isLogin ? "Entrar" : "Cadastrar";
     tabLogin.classList.toggle("tab-active", isLogin);
     tabRegister.classList.toggle("tab-active", !isLogin);
     loginForm.classList.toggle("hidden", !isLogin);
