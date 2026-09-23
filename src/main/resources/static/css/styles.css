@@ -1,6 +1,6 @@
 :root {
-    --color-primary: #2563eb;
-    --color-primary-dark: #1d4ed8;
+    --color-primary: #16161d;
+    --color-primary-dark: #000000;
     --color-bg: #f1f5f9;
     --color-card: #ffffff;
     --color-border: #e2e8f0;
@@ -10,9 +10,10 @@
     --color-success-bg: #dcfce7;
     --color-error: #dc2626;
     --color-error-bg: #fee2e2;
-    --color-tag-bg: #dbeafe;
-    --color-tag-text: #1e40af;
-    --radius: 8px;
+    --color-tag-bg: #16161d;
+    --color-tag-text: #ffffff;
+    --radius: 10px;
+    --radius-lg: 20px;
     --color-auth-dark: #16161d;
 }
 
@@ -64,15 +65,17 @@ body {
 
 .card {
     background-color: var(--color-card);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius);
-    padding: 20px;
+    border: none;
+    border-radius: var(--radius-lg);
+    padding: 24px;
     margin-bottom: 20px;
+    box-shadow: 0 12px 30px -18px rgba(15, 23, 42, 0.25);
 }
 
 .card h2 {
     margin-top: 0;
     font-size: 18px;
+    font-weight: 700;
 }
 
 .card-header-row {
@@ -226,15 +229,18 @@ body {
 .form input[type="text"],
 .form input[type="email"],
 .form input[type="password"] {
-    padding: 10px 12px;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius);
+    padding: 8px 2px;
+    border: none;
+    border-bottom: 1px solid var(--color-border);
+    border-radius: 0;
     font-size: 14px;
+    background: transparent;
+    color: var(--color-text);
 }
 
 .form input:focus {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 1px;
+    outline: none;
+    border-bottom-color: var(--color-primary);
 }
 
 .hint {
@@ -243,8 +249,8 @@ body {
 }
 
 .btn {
-    padding: 10px 18px;
-    border-radius: var(--radius);
+    padding: 10px 20px;
+    border-radius: 999px;
     border: none;
     font-size: 14px;
     font-weight: 600;
@@ -262,9 +268,13 @@ body {
 }
 
 .btn-secondary {
-    background-color: var(--color-bg);
+    background-color: transparent;
     color: var(--color-text);
     border: 1px solid var(--color-border);
+}
+
+.btn-secondary:hover {
+    border-color: var(--color-primary);
 }
 
 .btn-ghost {
@@ -286,9 +296,9 @@ body {
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 6px 10px;
+    padding: 7px 12px;
     border: 1px solid var(--color-border);
-    border-radius: var(--radius);
+    border-radius: 999px;
     font-size: 13px;
 }
 
@@ -328,7 +338,7 @@ body {
 }
 
 .tag-remove:hover {
-    background-color: rgba(30, 64, 175, 0.15);
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
 .add-tech-details {
@@ -368,9 +378,9 @@ body {
 }
 
 .match-item {
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius);
-    padding: 12px 14px;
+    border-radius: var(--radius-lg);
+    padding: 14px 16px;
+    background-color: var(--color-bg);
 }
 
 .match-item-header {
