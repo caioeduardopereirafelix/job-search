@@ -53,8 +53,12 @@ public class UserController {
         return userService.addTechnologies(id, request.technologies());
     }
 
-    @DeleteMapping("/{id}/technologies/{technologyName}")
-    public UserResponse removeTechnology(@PathVariable UUID id, @PathVariable String technologyName,
+    // technologyName vem por query param, nao por path variable: nomes como "CI/CD" e "PL/SQL"
+    // tem barra, e tanto o Tomcat quanto o Spring Security rejeitam com 400 uma barra codificada
+    // (%2F) dentro do caminho da URL, por padrao - e essa protecao contra ambiguidade de rota nao
+    // deve ser desligada so para acomodar isso. Query string nao sofre essa restricao.
+    @DeleteMapping("/{id}/technologies")
+    public UserResponse removeTechnology(@PathVariable UUID id, @RequestParam String technologyName,
                                           Authentication authentication) {
         requireOwner(id, authentication);
         return userService.removeTechnology(id, technologyName);
