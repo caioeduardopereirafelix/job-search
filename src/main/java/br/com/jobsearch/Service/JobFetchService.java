@@ -26,9 +26,6 @@ public class JobFetchService {
     private final JobMatchService jobMatchService;
 
     private final Map<String, Instant> lastFetched = new ConcurrentHashMap<>();
-
-    // Scheduler e busca sob demanda podem rodar juntos; o lock evita que os dois
-    // tentem inserir a mesma vaga ao mesmo tempo (dedup_key e unico).
     private final ReentrantLock lock = new ReentrantLock();
 
 

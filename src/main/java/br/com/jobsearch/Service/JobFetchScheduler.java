@@ -16,13 +16,10 @@ public class JobFetchScheduler {
     private final JobFetchService jobFetchService;
     private final UserTechnologyRepository userTechnologyRepository;
 
-    // fixedDelay curto por enquanto, só para testar mais rápido.
-    // Trocar para @Scheduled(cron = "0 0 6 * * *") quando for para produção (1x por dia).
-    @Scheduled(fixedDelay = 300000)
+    @Scheduled(cron = "0 0 6 * * *")
     public void fetchAndPersistJobs() {
         List<String> technologies = userTechnologyRepository.findDistinctTechnologyNames();
 
-        // Fallback enquanto não há nenhum usuário cadastrado ainda (base vazia)
         if (technologies.isEmpty()) {
             technologies = List.of("java");
         }

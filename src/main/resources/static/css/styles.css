@@ -248,6 +248,16 @@ body {
     color: var(--color-muted);
 }
 
+.field-error {
+    font-size: 12px;
+    color: var(--color-error);
+    margin-top: 4px;
+}
+
+.field-error:empty {
+    display: none;
+}
+
 .btn {
     padding: 10px 20px;
     border-radius: 999px;
@@ -277,6 +287,16 @@ body {
     border-color: var(--color-primary);
 }
 
+.btn-danger {
+    background-color: transparent;
+    color: var(--color-error);
+    border: 1px solid var(--color-error-bg);
+}
+
+.btn-danger:hover {
+    background-color: var(--color-error-bg);
+}
+
 .btn-ghost {
     background: none;
     color: #ffffff;
@@ -285,21 +305,61 @@ body {
     padding: 6px 14px;
 }
 
-.tech-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+.tech-search {
+    position: relative;
     margin: 8px 0;
 }
 
-.tech-checkbox {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 7px 12px;
+.tech-search-input {
+    width: 100%;
+    padding: 10px 14px;
     border: 1px solid var(--color-border);
-    border-radius: 999px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+}
+
+.tech-search-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.tech-suggestions {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background-color: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    box-shadow: 0 12px 30px -18px rgba(15, 23, 42, 0.35);
+    max-height: 240px;
+    overflow-y: auto;
+    z-index: 10;
+}
+
+.tech-suggestion-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 10px 14px;
+    border: none;
+    background: none;
+    font-size: 14px;
+    color: var(--color-text);
+    cursor: pointer;
+}
+
+.tech-suggestion-item:hover,
+.tech-suggestion-item.active {
+    background-color: var(--color-bg);
+}
+
+.tech-suggestions-empty {
+    padding: 10px 14px;
     font-size: 13px;
+    color: var(--color-muted);
 }
 
 .tag-list {

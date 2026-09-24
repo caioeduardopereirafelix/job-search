@@ -76,7 +76,6 @@ class JobMatchServiceTest {
         when(userRepository.existsById(userId)).thenReturn(true);
         givenUserTechnologies("Java");
 
-        // 3 batem com o perfil atual, 1 nao bate (so AWS) e deve ficar de fora antes de paginar.
         JobMatch m1 = matchOf("Vaga 1", List.of("Java"));
         JobMatch m2 = matchOf("Vaga 2", List.of("Java"));
         JobMatch onlyAws = matchOf("Vaga AWS", List.of("AWS"));

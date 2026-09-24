@@ -40,6 +40,7 @@ Aplicacao que cruza as tecnologias e o curriculo de cada usuario com vagas busca
    | `ADZUNA_APP_ID` / `ADZUNA_APP_KEY` | Credenciais da API da Adzuna |
    | `JWT_SECRET` | Segredo de assinatura do JWT |
    | `RESUME_STORAGE_PATH` | Pasta dos curriculos (padrao `./uploads/resumes`) |
+   | `FLYWAY_VALIDATE_ON_MIGRATE` | Padrao `true`. So mude pra `false` localmente se editar o conteudo de uma migration ja aplicada no seu banco (o checksum muda e a validacao do Flyway trava a aplicacao) - nunca desative em producao |
 
 2. Suba o banco:
 

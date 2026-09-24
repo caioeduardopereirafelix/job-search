@@ -29,7 +29,6 @@ public class JobPersistenceService {
             job.setDedupKey(Job.buildDedupKey(job.getTitleJob(), job.getCompanyJob(), job.getLocation()));
         }
 
-        // Duas consultas para o lote inteiro, em vez de duas por vaga.
         Set<String> knownUrls = new HashSet<>(jobRepository.findExistingSourceUrls(
                 jobs.stream().map(Job::getSourceUrlJob).filter(Objects::nonNull).distinct().toList()));
         Set<String> knownKeys = new HashSet<>(jobRepository.findExistingDedupKeys(
@@ -42,7 +41,6 @@ public class JobPersistenceService {
             }
             jobRepository.save(job);
             saved.add(job);
-            // Tambem cobre repeticoes dentro do proprio lote.
             knownKeys.add(job.getDedupKey());
             if (job.getSourceUrlJob() != null) {
                 knownUrls.add(job.getSourceUrlJob());

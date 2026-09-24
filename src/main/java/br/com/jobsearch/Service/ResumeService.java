@@ -72,7 +72,6 @@ public class ResumeService {
         resume.setUploadAt(LocalDateTime.now());
         resumeRepository.save(resume);
 
-        // So acrescenta ao perfil; nunca remove o que o usuario ja tinha.
         List<String> detected = technologyExtractor.extract(extractedText);
         List<String> added = userService.addTechnologiesFromResume(userId, detected);
 
@@ -84,6 +83,20 @@ public class ResumeService {
         Resume resume = resumeRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario ainda nao enviou curriculo"));
         return toResponse(resume);
+    }
+
+    @Transactional
+    public void deleteResume(UUID userId) {
+        Resume resume = resumeRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario ainda nao enviou curriculo"));
+
+        try {
+            Files.deleteIfExists(Path.of(resume.getFilePath()));
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Falha ao remover o arquivo armazenado");
+        }
+
+        resumeRepository.deleteByUserId(userId);
     }
 
     @Transactional(readOnly = true)

@@ -9,10 +9,12 @@ import type {
 
 export class ApiError extends Error {
     readonly status: number;
+    readonly fieldErrors?: string[];
 
-    constructor(status: number, message: string) {
+    constructor(status: number, message: string, fieldErrors?: string[]) {
         super(message);
         this.status = status;
+        this.fieldErrors = fieldErrors;
     }
 }
 
@@ -36,7 +38,9 @@ async function request<T>(
             body && typeof body.message === "string"
                 ? body.message
                 : `Erro ${response.status}`;
-        throw new ApiError(response.status, message);
+        const fieldErrors =
+            body && Array.isArray(body.fieldErrors) ? body.fieldErrors : undefined;
+        throw new ApiError(response.status, message, fieldErrors);
     }
 
     return body as T;
@@ -143,6 +147,13 @@ export function uploadResume(
         method: "POST",
         headers: authHeaders(token),
         body: formData,
+    });
+}
+
+export function deleteResume(id: string, token: string): Promise<void> {
+    return request<void>(`/api/users/${id}/resume`, {
+        method: "DELETE",
+        headers: authHeaders(token),
     });
 }
 

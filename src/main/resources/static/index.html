@@ -38,9 +38,11 @@
                 <form id="login-form" class="auth-form">
                     <label for="login-email">E-mail</label>
                     <input id="login-email" type="email" placeholder="seuemail@exemplo.com" required autocomplete="email" />
+                    <span class="field-error" id="login-email-error"></span>
 
                     <label for="login-password">Senha</label>
                     <input id="login-password" type="password" placeholder="••••••••" required autocomplete="current-password" />
+                    <span class="field-error" id="login-password-error"></span>
 
                     <button type="submit" class="btn-pill">Entrar</button>
                 </form>
@@ -48,13 +50,16 @@
                 <form id="register-form" class="auth-form hidden">
                     <label for="register-name">Nome</label>
                     <input id="register-name" type="text" placeholder="Seu nome" required />
+                    <span class="field-error" id="register-name-error"></span>
 
                     <label for="register-email">E-mail</label>
                     <input id="register-email" type="email" placeholder="seuemail@exemplo.com" required autocomplete="email" />
+                    <span class="field-error" id="register-email-error"></span>
 
                     <label for="register-password">Senha</label>
                     <input id="register-password" type="password" placeholder="••••••••" required minlength="8" autocomplete="new-password" />
                     <span class="hint">Pelo menos 8 caracteres</span>
+                    <span class="field-error" id="register-password-error"></span>
 
                     <button type="submit" class="btn-pill">Cadastrar</button>
                 </form>
@@ -74,10 +79,16 @@
 
                 <details class="add-tech-details">
                     <summary>Adicionar tecnologias</summary>
-                    <form id="add-tech-form" class="form">
-                        <div id="add-technologies" class="tech-grid"></div>
-                        <button type="submit" class="btn btn-primary">Adicionar</button>
-                    </form>
+                    <div class="tech-search">
+                        <input
+                            id="tech-search-input"
+                            type="text"
+                            class="tech-search-input"
+                            placeholder="Buscar tecnologia (ex.: Java, React, Docker)..."
+                            autocomplete="off"
+                        />
+                        <div id="tech-suggestions" class="tech-suggestions hidden"></div>
+                    </div>
                 </details>
             </div>
 
@@ -89,6 +100,7 @@
                     <button type="submit" class="btn btn-primary">Enviar PDF</button>
                 </form>
                 <button id="download-resume-button" class="btn btn-secondary hidden">Baixar currículo</button>
+                <button id="delete-resume-button" class="btn btn-danger hidden">Excluir currículo</button>
                 <div id="resume-preview" class="resume-preview hidden">
                     <h3>Texto extraído</h3>
                     <pre id="resume-text"></pre>

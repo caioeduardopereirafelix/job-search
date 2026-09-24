@@ -1,5 +1,4 @@
--- Regra de negocio: mesma vaga = mesmo titulo + empresa + local (ignorando
--- caixa e espacos). O Adzuna publica o mesmo anuncio com ids/URLs diferentes.
+
 ALTER TABLE job ADD COLUMN dedup_key VARCHAR(800);
 
 UPDATE job
@@ -7,10 +6,6 @@ SET dedup_key = lower(regexp_replace(trim(coalesce(title_job, '')), '\s+', ' ', 
              || lower(regexp_replace(trim(coalesce(company_job, '')), '\s+', ' ', 'g')) || '|'
              || lower(regexp_replace(trim(coalesce(location, '')), '\s+', ' ', 'g'));
 
--- ON COMMIT DROP: sem isto, a tabela temp pode sobreviver a transacao (ela e
--- por sessao, nao por transacao) e, com pool de conexoes, uma tentativa
--- anterior desta migration pode deixar "job_map" para tras na mesma conexao
--- fisica reaproveitada, quebrando a proxima tentativa com "already exists".
 DROP TABLE IF EXISTS job_map;
 CREATE TEMP TABLE job_map ON COMMIT DROP AS
 SELECT id AS old_id, keeper_id
@@ -20,7 +15,6 @@ FROM (
 ) t
 WHERE id <> keeper_id;
 
--- Reaponta um match por usuario para a vaga mantida (sem violar o unique) e apaga o resto.
 UPDATE job_match jm
 SET job_id = m.keeper_id
 FROM job_map m

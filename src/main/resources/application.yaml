@@ -18,13 +18,14 @@ spring:
       hibernate:
         format_sql: true
 
+  flyway:
+    validate-on-migrate: ${FLYWAY_VALIDATE_ON_MIGRATE:true}
+
   servlet:
     multipart:
       max-file-size: 5MB
       max-request-size: 5MB
 
-# Estava indentado dentro de "spring:" (spring.server.error.*, que nao existe) e por isso
-# nunca surtia efeito: server.error.* e uma propriedade de nivel raiz, nao de spring.*.
 server:
   error:
     include-message: always

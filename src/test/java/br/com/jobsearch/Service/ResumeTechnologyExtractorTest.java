@@ -40,7 +40,6 @@ class ResumeTechnologyExtractorTest {
 
     @Test
     void doesNotConfuseSimilarNames() {
-        // "JavaScript" nao vale como "Java"; "PostgreSQL" nao vale como "SQL"; "GitHub" nao vale como "Git".
         List<String> result = extractor.extract("JavaScript, PostgreSQL e GitHub");
 
         assertEquals(List.of("GitHub", "JavaScript", "PostgreSQL"), result);

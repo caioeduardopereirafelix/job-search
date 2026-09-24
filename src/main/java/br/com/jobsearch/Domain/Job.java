@@ -35,7 +35,6 @@ public class Job {
 
     private LocalDateTime fetchedAt;
 
-    /** Titulo + empresa + local normalizados; identifica a mesma vaga mesmo com URLs diferentes. */
     @Column(length = 800, unique = true)
     private String dedupKey;
 

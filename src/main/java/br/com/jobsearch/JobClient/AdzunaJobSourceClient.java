@@ -52,10 +52,6 @@ public class AdzunaJobSourceClient implements JobSourceClient{
                 .toList();
     }
 
-    /**
-     * O redirect_url do Adzuna traz um token "se" novo a cada busca; sem
-     * removê-lo, a mesma vaga nunca é reconhecida como já existente.
-     */
     static String normalizeUrl(String url) {
         if (url == null) {
             return null;

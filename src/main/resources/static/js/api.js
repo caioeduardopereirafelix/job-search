@@ -1,7 +1,8 @@
 export class ApiError extends Error {
-    constructor(status, message) {
+    constructor(status, message, fieldErrors) {
         super(message);
         this.status = status;
+        this.fieldErrors = fieldErrors;
     }
 }
 async function request(path, options = {}) {
@@ -17,7 +18,8 @@ async function request(path, options = {}) {
         const message = body && typeof body.message === "string"
             ? body.message
             : `Erro ${response.status}`;
-        throw new ApiError(response.status, message);
+        const fieldErrors = body && Array.isArray(body.fieldErrors) ? body.fieldErrors : undefined;
+        throw new ApiError(response.status, message, fieldErrors);
     }
     return body;
 }
@@ -84,6 +86,12 @@ export function uploadResume(id, token, file) {
         method: "POST",
         headers: authHeaders(token),
         body: formData,
+    });
+}
+export function deleteResume(id, token) {
+    return request(`/api/users/${id}/resume`, {
+        method: "DELETE",
+        headers: authHeaders(token),
     });
 }
 export async function downloadResume(id, token) {

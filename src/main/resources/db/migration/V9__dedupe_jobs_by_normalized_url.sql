@@ -1,6 +1,4 @@
--- O redirect_url do Adzuna traz um token "se" novo a cada busca, o que fazia a
--- mesma vaga ser inserida de novo a cada ciclo. Normaliza a URL (sem "se") e
--- funde as vagas repetidas numa so.
+
 CREATE TEMP TABLE job_norm AS
 SELECT id,
        regexp_replace(regexp_replace(source_url_job, '([?&])se=[^&]*&?', '\1'), '[?&]+$', '') AS norm_url
@@ -17,8 +15,6 @@ FROM job_norm n
 JOIN job_keeper k ON k.norm_url = n.norm_url
 WHERE n.id <> k.keeper_id;
 
--- Reaponta os matches das vagas repetidas para a vaga mantida, evitando conflito
--- com o unique (user_id, job_id); o que sobrar e apagado.
 UPDATE job_match jm
 SET job_id = m.keeper_id
 FROM job_map m

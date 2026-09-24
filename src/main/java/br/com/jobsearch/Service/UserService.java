@@ -142,8 +142,6 @@ public class UserService {
         if (linkedTechnologies.isEmpty()) {
             return;
         }
-        // Recalcula em vez de so completar: os matches que ja existiam guardam o score e
-        // as tecnologias do perfil antigo, e ficariam desatualizados com o perfil maior.
         jobMatchService.rematchUser(userId);
         eventPublisher.publishEvent(new UserTechnologiesLinkedEvent(userId, linkedTechnologies));
     }
