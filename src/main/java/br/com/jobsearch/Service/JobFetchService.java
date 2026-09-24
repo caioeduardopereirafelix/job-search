@@ -13,10 +13,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
-/**
- * Busca as vagas mais recentes de uma tecnologia, salva as novas e cruza com
- * o perfil de todos os usuarios. Usado pelo scheduler e pela busca sob demanda.
- */
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -34,12 +31,7 @@ public class JobFetchService {
     // tentem inserir a mesma vaga ao mesmo tempo (dedup_key e unico).
     private final ReentrantLock lock = new ReentrantLock();
 
-    /**
-     * Percorre as paginas (da mais recente para a mais antiga) e para na
-     * primeira que nao trouxer nenhuma vaga nova.
-     *
-     * @return quantas vagas novas foram salvas
-     */
+
     public int fetchAndPersist(String technology) {
         lock.lock();
         try {
@@ -66,7 +58,6 @@ public class JobFetchService {
         }
     }
 
-    /** Ordena para buscar primeiro as tecnologias que ficaram mais tempo sem atualizar. */
     public List<String> byOldestFetch(List<String> technologies) {
         return technologies.stream()
                 .sorted(Comparator.comparing(t -> lastFetched.getOrDefault(t.toLowerCase(), Instant.EPOCH)))

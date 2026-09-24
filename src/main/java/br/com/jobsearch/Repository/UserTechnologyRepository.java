@@ -19,13 +19,7 @@ public interface UserTechnologyRepository extends JpaRepository<UserTechnology, 
 
     Optional<UserTechnology> findByUserIdAndTechnologyNameIgnoreCase(UUID userId, String technologyName);
 
-    /**
-     * Insere o vinculo usuario+tecnologia so se ainda nao existir. Usa
-     * ON CONFLICT DO NOTHING (atomico no Postgres) em vez de save() comum,
-     * pra que duas requisicoes concorrentes tentando adicionar a mesma
-     * tecnologia nao derrubem a transacao uma da outra com erro 500 -
-     * a que perde a corrida so recebe 0 linhas afetadas, sem excecao.
-     */
+
     @Modifying
     @Query(value = "INSERT INTO user_technology (id, user_id, technology_id) "
             + "VALUES (gen_random_uuid(), :userId, :technologyId) "

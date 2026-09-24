@@ -71,15 +71,6 @@ public class JobMatchService {
         insertMatchesBatch(pending);
     }
 
-    /**
-     * Roda o match do usuario contra vagas que ja estao no banco - usado
-     * quando o usuario se cadastra ou muda as tecnologias, pra nao precisar
-     * esperar o proximo ciclo do scheduler trazer uma vaga nova.
-     *
-     * Antes disso fazia um existsByUserIdAndJobId por vaga (uma ida e volta ao banco por
-     * vaga, sequencial) - com milhares de vagas isso passava de 1 minuto e chegava a dar
-     * timeout. Agora busca os IDs ja combinados de uma vez e filtra em memoria.
-     */
     @Transactional
     public void matchExistingJobsForUser(UUID userId) {
         User user = userRepository.findById(userId)
@@ -101,11 +92,6 @@ public class JobMatchService {
         insertMatchesBatch(pending);
     }
 
-    /**
-     * Descarta os matches do usuario e recalcula contra as vagas do banco.
-     * Usado quando uma tecnologia e removida: os matches que dependiam so dela
-     * somem e o score dos demais volta a refletir o perfil atual.
-     */
     @Transactional
     public void rematchUser(UUID userId) {
         jobMatchRepository.deleteByUserId(userId);
@@ -166,10 +152,6 @@ public class JobMatchService {
                 .toList();
     }
 
-    /**
-     * Procura a tecnologia como palavra inteira: "Git" nao casa com "digital",
-     * "Java" nao casa com "JavaScript" e "C" nao casa com "C#" ou "C++".
-     */
     static boolean mentions(String haystack, String technologyName) {
         return mentions(haystack, technologyName, true);
     }
@@ -192,18 +174,11 @@ public class JobMatchService {
         return value == null ? "" : value;
     }
 
-    /** Sem paginacao, para quem so precisa da lista inteira (ex.: testes). */
     @Transactional(readOnly = true)
     public List<JobMatchResponse> getMatchesForUser(UUID userId) {
         return getMatchesForUser(userId, 0, Integer.MAX_VALUE).content();
     }
 
-    /**
-     * O filtro por tecnologia atual do perfil (ver rede de seguranca abaixo) e feito em memoria,
-     * entao a lista inteira do usuario e carregada antes de paginar. Para o volume de vagas de
-     * hoje isso e barato; se crescer muito, mover o filtro para uma consulta nativa com o
-     * operador de overlap de array do Postgres (matched_technologies && :currentTechnologies).
-     */
     @Transactional(readOnly = true)
     public PagedResponse<JobMatchResponse> getMatchesForUser(UUID userId, int page, int size) {
         if (!userRepository.existsById(userId)) {
@@ -214,7 +189,6 @@ public class JobMatchService {
                 .map(name -> name.toLowerCase(Locale.ROOT))
                 .collect(Collectors.toSet());
 
-        // Rede de seguranca: so mostra o match se ele ainda cita alguma tecnologia do perfil atual.
         List<JobMatchResponse> all = jobMatchRepository.findByUserIdOrderByScoreDesc(userId).stream()
                 .filter(jm -> jm.getMatchedTechnologies() != null && jm.getMatchedTechnologies().stream()
                         .anyMatch(name -> currentTechnologies.contains(name.toLowerCase(Locale.ROOT))))
