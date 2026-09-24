@@ -22,7 +22,6 @@ const tabLogin = el<HTMLButtonElement>("tab-login");
 const tabRegister = el<HTMLButtonElement>("tab-register");
 const loginForm = el<HTMLFormElement>("login-form");
 const registerForm = el<HTMLFormElement>("register-form");
-const registerTechnologiesBox = el<HTMLElement>("register-technologies");
 
 const logoutButton = el<HTMLButtonElement>("logout-button");
 const currentTechnologiesBox = el<HTMLElement>("current-technologies");
@@ -298,10 +297,9 @@ registerForm.addEventListener("submit", async (event) => {
     const email = el<HTMLInputElement>("register-email").value;
     const name = el<HTMLInputElement>("register-name").value;
     const password = el<HTMLInputElement>("register-password").value;
-    const technologies = getCheckedValues(registerTechnologiesBox);
 
     try {
-        await api.register(email, name, password, technologies);
+        await api.register(email, name, password);
         const loginResponse = await api.login(email, password);
         await enterDashboard({
             token: loginResponse.token,
@@ -412,7 +410,6 @@ refreshMatchesButton.addEventListener("click", async () => {
 
 async function init(): Promise<void> {
     await loadAllTechnologies();
-    renderTechnologyCheckboxes(registerTechnologiesBox, allTechnologies, "register-tech");
 
     const existing = loadSession();
     if (existing) {

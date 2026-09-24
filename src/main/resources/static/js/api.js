@@ -27,11 +27,11 @@ function authHeaders(token) {
 export function listTechnologies() {
     return request("/api/technologies");
 }
-export function register(email, name, password, technologies) {
+export function register(email, name, password) {
     return request("/api/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, name, password, technologies }),
+        body: JSON.stringify({ email, name, password, technologies: [] }),
     });
 }
 export function login(email, password) {

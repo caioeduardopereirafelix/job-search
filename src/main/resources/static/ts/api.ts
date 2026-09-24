@@ -53,13 +53,12 @@ export function listTechnologies(): Promise<Technology[]> {
 export function register(
     email: string,
     name: string,
-    password: string,
-    technologies: string[]
+    password: string
 ): Promise<UserResponse> {
     return request<UserResponse>("/api/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, name, password, technologies }),
+        body: JSON.stringify({ email, name, password, technologies: [] }),
     });
 }
 
