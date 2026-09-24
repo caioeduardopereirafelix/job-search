@@ -17,6 +17,8 @@ import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.jdbc.core.ConnectionCallback;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,8 +28,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyDouble;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -41,6 +41,7 @@ class JobMatchServiceTest {
     @Mock UserTechnologyRepository userTechnologyRepository;
     @Mock JobMatchRepository jobMatchRepository;
     @Mock JobRepository jobRepository;
+    @Mock JdbcTemplate jdbcTemplate;
     @InjectMocks JobMatchService service;
 
     private final UUID userId = UUID.randomUUID();
@@ -114,9 +115,9 @@ class JobMatchServiceTest {
 
         service.rematchUser(userId);
 
-        InOrder order = inOrder(jobMatchRepository);
+        InOrder order = inOrder(jobMatchRepository, jdbcTemplate);
         order.verify(jobMatchRepository).deleteByUserId(userId);
-        order.verify(jobMatchRepository).insertIfAbsent(any(), eq(job.getId()), anyDouble(), any(), any());
+        order.verify(jdbcTemplate).execute(any(ConnectionCallback.class));
     }
 
     @Test
@@ -131,7 +132,7 @@ class JobMatchServiceTest {
 
         service.matchExistingJobsForUser(userId);
 
-        verify(jobMatchRepository, never()).insertIfAbsent(any(), any(), anyDouble(), any(), any());
+        verify(jdbcTemplate, never()).execute(any(ConnectionCallback.class));
     }
 
     private void givenUserTechnologies(String... names) {

@@ -10,16 +10,23 @@ import br.com.jobsearch.Repository.UserRepository;
 import br.com.jobsearch.Repository.UserTechnologyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -27,10 +34,18 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class JobMatchService {
 
+    private static final Map<String, Pattern> PATTERN_CACHE = new ConcurrentHashMap<>();
+
+    private static final String INSERT_MATCH_SQL =
+            "INSERT INTO job_match (id, user_id, job_id, score, matched_technologies, created_at) "
+                    + "VALUES (gen_random_uuid(), ?, ?, ?, ?, ?) "
+                    + "ON CONFLICT (user_id, job_id) DO NOTHING";
+
     private final UserRepository userRepository;
     private final UserTechnologyRepository userTechnologyRepository;
     private final JobMatchRepository jobMatchRepository;
     private final JobRepository jobRepository;
+    private final JdbcTemplate jdbcTemplate;
 
     @Transactional
     public void matchNewJobs(List<Job> jobs) {
@@ -38,6 +53,7 @@ public class JobMatchService {
             return;
         }
 
+        List<PendingMatch> pending = new ArrayList<>();
         for (User user : userRepository.findAll()) {
             List<String> technologyNames = technologyNamesFor(user.getId());
             if (technologyNames.isEmpty()) {
@@ -49,9 +65,10 @@ public class JobMatchService {
                 if (alreadyMatched.contains(job.getId())) {
                     continue;
                 }
-                createMatchIfApplicable(user, job, technologyNames);
+                buildMatchIfApplicable(user, job, technologyNames).ifPresent(pending::add);
             }
         }
+        insertMatchesBatch(pending);
     }
 
     /**
@@ -74,12 +91,14 @@ public class JobMatchService {
         }
 
         Set<UUID> alreadyMatched = new HashSet<>(jobMatchRepository.findJobIdsByUserId(userId));
+        List<PendingMatch> pending = new ArrayList<>();
         for (Job job : jobRepository.findAll()) {
             if (alreadyMatched.contains(job.getId())) {
                 continue;
             }
-            createMatchIfApplicable(user, job, technologyNames);
+            buildMatchIfApplicable(user, job, technologyNames).ifPresent(pending::add);
         }
+        insertMatchesBatch(pending);
     }
 
     /**
@@ -99,22 +118,43 @@ public class JobMatchService {
                 .toList();
     }
 
-    // Callers ja filtram as vagas que o usuario tem contra o Set de IDs ja combinados (uma
-    // consulta so); o ON CONFLICT DO NOTHING do insertIfAbsent continua garantindo que uma
-    // corrida entre duas chamadas concorrentes (ex.: scheduler + usuario editando o perfil
-    // ao mesmo tempo) nunca duplica um match.
-    private void createMatchIfApplicable(User user, Job job, List<String> technologyNames) {
+    private Optional<PendingMatch> buildMatchIfApplicable(User user, Job job, List<String> technologyNames) {
         List<String> matched = matchedTechnologies(job, technologyNames);
         if (matched.isEmpty()) {
-            return;
+            return Optional.empty();
         }
 
-        jobMatchRepository.insertIfAbsent(
+        return Optional.of(new PendingMatch(
                 user.getId(),
                 job.getId(),
                 (double) matched.size() / technologyNames.size(),
                 matched.toArray(new String[0]),
-                LocalDateTime.now());
+                LocalDateTime.now()));
+    }
+
+    private void insertMatchesBatch(List<PendingMatch> pending) {
+        if (pending.isEmpty()) {
+            return;
+        }
+
+        jdbcTemplate.execute((Connection connection) -> {
+            try (PreparedStatement statement = connection.prepareStatement(INSERT_MATCH_SQL)) {
+                for (PendingMatch match : pending) {
+                    statement.setObject(1, match.userId());
+                    statement.setObject(2, match.jobId());
+                    statement.setDouble(3, match.score());
+                    statement.setArray(4, connection.createArrayOf("text", match.matchedTechnologies()));
+                    statement.setObject(5, match.createdAt());
+                    statement.addBatch();
+                }
+                statement.executeBatch();
+            }
+            return null;
+        });
+    }
+
+    private record PendingMatch(UUID userId, UUID jobId, double score, String[] matchedTechnologies,
+                                 LocalDateTime createdAt) {
     }
 
     private List<String> matchedTechnologies(Job job, List<String> technologyNames) {
@@ -135,10 +175,17 @@ public class JobMatchService {
     }
 
     static boolean mentions(String haystack, String technologyName, boolean ignoreCase) {
-        String regex = "(?<![\\p{L}\\p{N}])" + Pattern.quote(technologyName)
-                + "(?![\\p{L}\\p{N}+#])";
-        int flags = ignoreCase ? Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE : 0;
-        return Pattern.compile(regex, flags).matcher(haystack).find();
+        return patternFor(technologyName, ignoreCase).matcher(haystack).find();
+    }
+
+    private static Pattern patternFor(String technologyName, boolean ignoreCase) {
+        String key = technologyName + "|" + ignoreCase;
+        return PATTERN_CACHE.computeIfAbsent(key, k -> {
+            String regex = "(?<![\\p{L}\\p{N}])" + Pattern.quote(technologyName)
+                    + "(?![\\p{L}\\p{N}+#])";
+            int flags = ignoreCase ? Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE : 0;
+            return Pattern.compile(regex, flags);
+        });
     }
 
     private String nullToEmpty(String value) {
