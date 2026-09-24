@@ -54,7 +54,9 @@ export function addTechnologies(id, token, technologies) {
     });
 }
 export function removeTechnology(id, token, technologyName) {
-    return request(`/api/users/${id}/technologies/${encodeURIComponent(technologyName)}`, {
+    // Query param, nao path variable: nomes como "CI/CD" tem barra, e o servidor rejeita
+    // barra codificada (%2F) dentro do caminho da URL por padrao.
+    return request(`/api/users/${id}/technologies?technologyName=${encodeURIComponent(technologyName)}`, {
         method: "DELETE",
         headers: authHeaders(token),
     });

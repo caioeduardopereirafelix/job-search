@@ -93,8 +93,10 @@ export function removeTechnology(
     token: string,
     technologyName: string
 ): Promise<UserResponse> {
+    // Query param, nao path variable: nomes como "CI/CD" tem barra, e o servidor rejeita
+    // barra codificada (%2F) dentro do caminho da URL por padrao.
     return request<UserResponse>(
-        `/api/users/${id}/technologies/${encodeURIComponent(technologyName)}`,
+        `/api/users/${id}/technologies?technologyName=${encodeURIComponent(technologyName)}`,
         {
             method: "DELETE",
             headers: authHeaders(token),

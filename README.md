@@ -76,7 +76,7 @@ Documentacao interativa (Swagger UI): `http://localhost:8080/swagger-ui.html`
 | GET | `/api/technologies` | publica | Lista tecnologias |
 | GET | `/api/users/{id}` | JWT (dono) | Dados do usuario |
 | POST | `/api/users/{id}/technologies` | JWT (dono) | Adiciona tecnologias |
-| DELETE | `/api/users/{id}/technologies/{name}` | JWT (dono) | Remove tecnologia |
+| DELETE | `/api/users/{id}/technologies?technologyName=X` | JWT (dono) | Remove tecnologia |
 | GET | `/api/users/{id}/matches` | JWT (dono) | Vagas compativeis |
 | POST | `/api/users/{id}/resume` | JWT (dono) | Envia curriculo (PDF) |
 | GET | `/api/users/{id}/resume` | JWT (dono) | Metadados e texto do curriculo |
