@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -43,7 +44,11 @@ public class JobMatchService {
                 continue;
             }
 
+            Set<UUID> alreadyMatched = new HashSet<>(jobMatchRepository.findJobIdsByUserId(user.getId()));
             for (Job job : jobs) {
+                if (alreadyMatched.contains(job.getId())) {
+                    continue;
+                }
                 createMatchIfApplicable(user, job, technologyNames);
             }
         }
@@ -53,6 +58,10 @@ public class JobMatchService {
      * Roda o match do usuario contra vagas que ja estao no banco - usado
      * quando o usuario se cadastra ou muda as tecnologias, pra nao precisar
      * esperar o proximo ciclo do scheduler trazer uma vaga nova.
+     *
+     * Antes disso fazia um existsByUserIdAndJobId por vaga (uma ida e volta ao banco por
+     * vaga, sequencial) - com milhares de vagas isso passava de 1 minuto e chegava a dar
+     * timeout. Agora busca os IDs ja combinados de uma vez e filtra em memoria.
      */
     @Transactional
     public void matchExistingJobsForUser(UUID userId) {
@@ -64,7 +73,11 @@ public class JobMatchService {
             return;
         }
 
+        Set<UUID> alreadyMatched = new HashSet<>(jobMatchRepository.findJobIdsByUserId(userId));
         for (Job job : jobRepository.findAll()) {
+            if (alreadyMatched.contains(job.getId())) {
+                continue;
+            }
             createMatchIfApplicable(user, job, technologyNames);
         }
     }
@@ -86,11 +99,11 @@ public class JobMatchService {
                 .toList();
     }
 
+    // Callers ja filtram as vagas que o usuario tem contra o Set de IDs ja combinados (uma
+    // consulta so); o ON CONFLICT DO NOTHING do insertIfAbsent continua garantindo que uma
+    // corrida entre duas chamadas concorrentes (ex.: scheduler + usuario editando o perfil
+    // ao mesmo tempo) nunca duplica um match.
     private void createMatchIfApplicable(User user, Job job, List<String> technologyNames) {
-        if (jobMatchRepository.existsByUserIdAndJobId(user.getId(), job.getId())) {
-            return;
-        }
-
         List<String> matched = matchedTechnologies(job, technologyNames);
         if (matched.isEmpty()) {
             return;
