@@ -1,4 +1,4 @@
-﻿package br.com.jobsearch.Service;
+package br.com.jobsearch.Service;
 
 import br.com.jobsearch.Domain.Job;
 import br.com.jobsearch.Domain.User;
